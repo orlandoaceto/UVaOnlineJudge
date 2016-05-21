@@ -1,47 +1,72 @@
+//481 - What Goes Up
 //Problem at UVa Online Judge
 //Solution by Orlando Aceto - contact: ova@cin.ufpe.br
 //Feel free to use this code if you wish
 
+/*
+The problem is simply to find LIS (classical dynamic program problem)
+(I tried to make this solution as concise as possible. This might make it
+easier to understand for some, but harder to understand for others, I hope
+it's useful to you!)
+*/
 
 #include <bits/stdc++.h>
 using namespace std;
 
 #define fr(a, n) for(a = 0; a < n; a++)
-#define ii pair<int, int>;
-#define dd pair<double, double>;
+#define fr1(a, n) for(a = 1; a <= n; a++)
+#define frR(a, n) for (a = n; a >= 0; a--)
+#define sc(a) scanf("%d", &a)
+#define pr(a) printf("%d\n", a)
+#define p(i, j) make_pair(i, j)
+#define fi first
+#define se second
+#define pb push_back
+#define clr(a) memset(a, 0, sizeof a);
 
-int main()
-{
-	vector<int> v;
+typedef pair<int, int> ii;
+typedef pair<double, double> dd;
+typedef vector<int> vi;
+typedef vector<ii> vii;
+typedef long long int ll;
+typedef unsigned long long int ull;
+
+int main(){
+	vi v;//Stores input
+	vi sv;//sv[i] stores smallest last value of each LIS of length i+1
+	vi index;//Since sv stores values(due to binary searches), it's necessary to have another vector for indexes
+	vi parent;//parent[i] stores value of parent of v[i] if it has one
 	
-	int n, i, j;
-	int size, longest;
-		
-	while(scanf("%d", &n) > 0) v.push_back(n);
+	int aux;
+	while(sc(aux) > 0) v.pb(aux);//Reads input until EOF and puts in vector v
 	
-	vector< vector<int> > l(v.size());
+	parent.resize(v.size());//Prepares parent vector
 	
-	size = 1;
-	longest = 0;
-	
-	l[0].push_back(v[0]);
-	for(i = 1; i < v.size(); i++)
-	{
-		for(j = 0; j < i; j++)
-		{
-			if(v[j] < v[i] && l[i].size() < l[j].size()+1) l[i] = l[j];
+	vi::iterator it;
+	for(int i = 0; i < v.size(); i++){
+		it = lower_bound(sv.begin(), sv.end(), v[i]);
+		if(it == sv.end()){
+			if(!sv.empty()) parent[i] = *index.rbegin();//v[i] is larger than every value before it so the parent
+			sv.pb(v[i]);								//is the last element of the largest LIS so far
+			index.pb(i);
 		}
-		l[i].push_back(v[i]);
-		
-		if(l[i].size() > size)
-		{
-			size = l[i].size();
-			longest = i;
+		else{
+			if(it != sv.begin()) parent[i] = index[it-sv.begin()-1];
+			*it = v[i];
+			index[it-sv.begin()] = i;
 		}
 	}
 	
-	printf("%d\n-\n", size);
-	for(vector<int>::iterator it = l[longest].begin(); it != l[longest].end(); it++) cout<<*it<<'\n';
+	int curr = *index.rbegin();//Index of current element being added to LIS (starts with rbegin since it's the last
+	stack<int> LIS;            //value of the largest LIS)
+	int len = sv.size();       //Used to tell when to stop trying to stack elements(only needed if you can't represent a
+	while(len){                //null parent, for example, using value 0 and not having any elements with index 0)
+		LIS.push(v[curr]);//Stores LIS in stack
+		curr = parent[curr];
+		len--;
+	}
 	
-	return 0;
+	printf("%d\n-\n", (int)sv.size());
+	while(!LIS.empty())printf("%d\n", LIS.top()),LIS.pop();//Prints stack from top
+	
 }
